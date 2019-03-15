@@ -16,19 +16,27 @@ app.use(express.json());
 
 app.get('/posts',(req,res) => {
     Blog
+        //finds documents in Blog collection
         .find()
+        //returns a promise if it works out. then does something with the documents (resolve)
         .then(blogs => {
             res.json(blogs.map(blog => blog.serialize()))
         })
+        //if something doesnt work
         .catch(err => {
             console.error(err);
             res.status(500).json({message: 'Internal server error'});
         })
 });
 
+//retrieves a certain document with id
 app.get('/post/:id',(req,res) => {
     Blog
+        //search document by params id from the url
         .findById(req.params.id)
+        //returns a promise if document found
+        //return json using serialize. Normally you can return this way
+        //res.json({return {obj: object}})
         .then(blog => res.json(blog.serialize()))
         .catch(err =>{
             console.log(err);
@@ -36,8 +44,13 @@ app.get('/post/:id',(req,res) => {
         });
 });
 
+
 app.post('/posts',(req,res) => {
+
+  /* Checks to see if the req.body consists of the keys */
     const requiredFields = ['title','content','author'];
+
+    /* for loop forEach same thing */
     for(let i = 0; i < requiredFields.length; i++){
         const field = requiredFields[i];
         if(!(field in req.body)){
@@ -47,12 +60,16 @@ app.post('/posts',(req,res) => {
         }
     }
 
+    //once the req.body has been checked for its keys, create new document
     Blog
         .create({
             title: req.body.title,
             content: req.body.content,
             author: req.body.author,
         })
+        //returns the following keys above with id
+        //the steps is once created, it will produce an id with the following object
+        //when return to the client, id will show
         .then(blogPost => res.status(201).json(blogPost.serialize()))
         .catch(err =>{
             console.error(err);
@@ -60,14 +77,18 @@ app.post('/posts',(req,res) => {
         });
 });
 
+//updating documents
 app.put('/posts/:id', (req,res) => {
 
+    //checks to see if params.id and body.id exist, then compare if the values are the same
     if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
         const message = `Request path id and request body id values must match`;
         console.error(message);
         res.status(400).send(message);
     }
 
+    //create a variable that holds an object with the same key/value pairs as the req.body
+    //while checking to see if the keys are in the req.body
     const toUpdate = {};
     const updateableFields = ['title','content','author'];
     updateableFields.forEach(field => {
@@ -76,9 +97,17 @@ app.put('/posts/:id', (req,res) => {
         }
     })
 
+    
     Blog
+        //finds particular document with Id and then update
+        //$set: replaces values
         .findByIdAndUpdate(req.params.id, {$set: toUpdate})
-        .then(updatedPost => { res.status(204).end()})
+        //once the operation is done, response with the new updated json
+        .then(updatedPost => { res.json({
+          title: updatedPost.title,
+          content: updatedPost.content,
+          author: updatedPost.author
+        })
         .catch(err => { res.status(500).json({message: `Internal server error`})});
 });
 
