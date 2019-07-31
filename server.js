@@ -30,7 +30,7 @@ app.get('/posts',(req,res) => {
 });
 
 //retrieves a certain document with id
-app.get('/post/:id',(req,res) => {
+app.get('/posts/:id',(req,res) => {
     Blog
         //search document by params id from the url
         .findById(req.params.id)
@@ -40,7 +40,7 @@ app.get('/post/:id',(req,res) => {
         .then(blog => res.json(blog.serialize()))
         .catch(err =>{
             console.log(err);
-            res.status(400).json({message: `Internal server error`})
+            res.status(500).json({message: `Internal server error`})
         });
 });
 
@@ -73,7 +73,7 @@ app.post('/posts',(req,res) => {
         .then(blogPost => res.status(201).json(blogPost.serialize()))
         .catch(err =>{
             console.error(err);
-            res.status(400).json({error: `Internal server error`})
+            res.status(500).json({error: `Internal server error`})
         });
 });
 
@@ -103,15 +103,19 @@ app.put('/posts/:id', (req,res) => {
         //$set: replaces values
         .findByIdAndUpdate(req.params.id, {$set: toUpdate})
         //once the operation is done, response with the new updated json
-        .then(updatedPost => { res.json({
-          title: updatedPost.title,
-          content: updatedPost.content,
-          author: updatedPost.author
+        .then(updatedPost => { 
+          res.json({
+            title: updatedPost.title,
+            content: updatedPost.content,
+            author: updatedPost.author
+          })
         })
-        .catch(err => { res.status(500).json({message: `Internal server error`})});
+        .catch(err => { 
+          res.status(500).json({ message: `Internal server error` })
+        })
 });
 
-app.delete('/posts/id', (req,res) =>{
+app.delete('/posts/:id', (req,res) =>{
     Blog
         .findByIdAndRemove(req.params.id)
         .then(() => res.status(204).end())
@@ -120,7 +124,7 @@ app.delete('/posts/id', (req,res) =>{
 
 
 // catch-all endpoint if client makes request to non-existent endpoint
-app.use('*', function (req, res) {
+  app.use('*', function (req, res) {
     res.status(404).json({ message: 'Not Found' });
   });
   
@@ -133,7 +137,7 @@ app.use('*', function (req, res) {
   function runServer(databaseUrl, port = PORT) {
   
     return new Promise((resolve, reject) => {
-      mongoose.connect(databaseUrl, err => {
+      mongoose.connect(databaseUrl, { useNewUrlParser: true}, err => {
         if (err) {
           return reject(err);
         }
@@ -160,9 +164,9 @@ app.use('*', function (req, res) {
             return reject(err);
           }
           resolve();
-        });
-      });
-    });
+        })
+      })
+    })
   }
   
   // if server.js is called directly (aka, with `node server.js`), this block
@@ -171,5 +175,4 @@ app.use('*', function (req, res) {
     runServer(DATABASE_URL).catch(err => console.error(err));
   }
   
-  module.exports = { app, runServer, closeServer };
-  
+  module.exports = { app, runServer, closeServer }

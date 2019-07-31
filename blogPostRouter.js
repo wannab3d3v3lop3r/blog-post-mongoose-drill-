@@ -8,10 +8,6 @@ const jsonParser = bodyParser.json();
 
 const {BlogPosts} = require('./blogPostModel.js');
 
-//create some data to see
-BlogPosts.create('Chris Vo', 'How amazing he is', 'Himself', 'End of Time');
-BlogPosts.create('My Laziness', 'How destructive it is', 'not him apparently,', 'Never');
-
 router.get('/', (req,res) => {
     res.json(BlogPosts.get());
 })
@@ -61,8 +57,8 @@ router.put('/:id',jsonParser, (req,res) => {
 });
 
 router.delete('/:id', (req,res) => {
-    BlogPosts.delete(req.params.id);
-    console.log(`Deleted shopping list item \`${req.params.ID}\``);
+    BlogPosts.findByIdAndRemove(req.params.id);
+    console.log(`Deleted shopping list item \`${req.params.id}\``);
     res.status(204).end();
 });
 
